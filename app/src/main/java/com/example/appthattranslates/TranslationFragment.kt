@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import com.example.appthattranslates.databinding.FragmentTranslationBinding
 import androidx.lifecycle.ViewModelProvider
 import androidx.core.widget.addTextChangedListener
+import com.example.appthattranslates.MainActivity
 import com.example.appthattranslates.TranslationViewModel
 
 /**
@@ -40,7 +41,10 @@ class TranslationFragment : Fragment() {
 
         binding.editTextInput.addTextChangedListener {
             viewModel.userInput.value = it.toString()
+            (activity as MainActivity).handleTextChange()
         }
+
+
     }
 
     override fun onDestroyView() {

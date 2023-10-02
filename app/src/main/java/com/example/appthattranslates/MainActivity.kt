@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.lifecycle.ViewModelProvider
 import com.example.appthattranslates.databinding.ActivityMainBinding
 import com.google.mlkit.common.model.RemoteModelManager
+import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation.getClient
@@ -48,6 +49,51 @@ class MainActivity : AppCompatActivity() {
 
 
         setupTranslation()
+    }
+
+    fun handleTextChange() {
+        val text = viewModel.userInput.value ?: ""
+
+        // If text is empty or too short, don't attempt detection; just translate.
+        if (text.length < 3) {
+            translateText()
+            return
+        }
+
+        // Identify language of the input
+        identifyLanguage(text) { identifiedLang ->
+            // Map identifiedLang to corresponding RadioButton and select it.
+            // This example only includes English, Spanish, and German.
+            val radioButtonId = when (identifiedLang) {
+                TranslateLanguage.ENGLISH -> R.id.sourceEnglish
+                TranslateLanguage.SPANISH -> R.id.sourceSpanish
+                TranslateLanguage.GERMAN -> R.id.sourceGerman
+                else -> null
+            }
+
+            if (radioButtonId != null) {
+                binding.sourceLanguageGroup.check(radioButtonId)
+            }
+
+            // Then proceed with the translation
+            translateText()
+        }
+    }
+
+
+    private fun identifyLanguage(text: String, onComplete: (String?) -> Unit) {
+        val identifier = LanguageIdentification.getClient()
+        identifier.identifyLanguage(text)
+            .addOnSuccessListener { identifiedLang ->
+                if (identifiedLang != "und") {
+                    onComplete(identifiedLang)
+                } else {
+                    onComplete(null)
+                }
+            }
+            .addOnFailureListener {
+                onComplete(null)
+            }
     }
 
     private fun setupTranslation() {
